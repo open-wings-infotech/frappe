@@ -1419,6 +1419,29 @@ class Document(BaseDocument):
 				_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError
 			)
 
+	# def round_floats_in(self, doc, fieldnames=None):
+	# 	"""Round floats for all `Currency`, `Float`, `Percent` fields for the given doc.
+
+	# 	:param doc: Document whose numeric properties are to be rounded.
+	# 	:param fieldnames: [Optional] List of fields to be rounded."""
+	# 	if not fieldnames:
+	# 		fieldnames = (
+	# 			df.fieldname
+	# 			for df in doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]})
+	# 		)
+
+	# 	# PERF: flt internally has to resolve this if we don't specify it.
+	# 	rounding_method = frappe.get_system_settings("rounding_method")
+	# 	for fieldname in fieldnames:
+	# 		doc.set(
+	# 			fieldname,
+	# 			flt(
+	# 				doc.get(fieldname),
+	# 				self.precision(fieldname, doc.get("parentfield")),
+	# 				rounding_method=rounding_method,
+	# 			),
+	# 		)
+
 	def round_floats_in(self, doc, fieldnames=None):
 		"""Round floats for all `Currency`, `Float`, `Percent` fields for the given doc.
 
@@ -1441,6 +1464,42 @@ class Document(BaseDocument):
 					rounding_method=rounding_method,
 				),
 			)
+		
+		# Vinod - Custom implementation for rounding floats with special handling for Sales Invoice
+		# Vinod - Uses currency-specific precision for currency fields in Sales Invoice
+		if self.doctype == 'Sales Invoice':
+		for fieldname in fieldnames:
+			df = frappe.get_meta(doc.doctype).get_field(fieldname)
+			if df.fieldtype == "Currency":
+				number_format = frappe.db.get_value("Currency", self.currency, "number_format")
+				decimal_str, comma_str, precision = get_number_format_info(number_format)
+				doc.set(
+					fieldname,
+					flt(
+						doc.get(fieldname),
+						precision,
+						rounding_method=rounding_method,
+					),
+				)
+			else:
+				doc.set(
+					fieldname,
+					flt(
+						doc.get(fieldname),
+						self.precision(fieldname, doc.get("parentfield")),
+						rounding_method=rounding_method,
+					),
+				)
+		else:
+			for fieldname in fieldnames:
+				doc.set(
+					fieldname,
+					flt(
+						doc.get(fieldname),
+						self.precision(fieldname, doc.get("parentfield")),
+						rounding_method=rounding_method,
+					),
+				)
 
 	def get_url(self):
 		"""Returns Desk URL for this document."""
