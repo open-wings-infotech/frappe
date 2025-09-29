@@ -7,7 +7,37 @@ import os
 import frappe
 from frappe.utils import cint, split_emails
 
+# Commented by Vinod
+# def send_email(success, service_name, doctype, email_field, error_status=None):
+# 	recipients = get_recipients(doctype, email_field)
+# 	if not recipients:
+# 		frappe.log_error(
+# 			f"No Email Recipient found for {service_name}",
+# 			f"{service_name}: Failed to send backup status email",
+# 		)
+# 		return
 
+# 	if success:
+# 		if not frappe.db.get_single_value(doctype, "send_email_for_successful_backup"):
+# 			return
+
+# 		subject = "Backup Upload Successful"
+# 		message = """
+# <h3>Backup Uploaded Successfully!</h3>
+# <p>Hi there, this is just to inform you that your backup was successfully uploaded to your {} bucket. So relax!</p>""".format(
+# 			service_name
+# 		)
+# 	else:
+# 		subject = "[Warning] Backup Upload Failed"
+# 		message = f"""
+# <h3>Backup Upload Failed!</h3>
+# <p>Oops, your automated backup to {service_name} failed.</p>
+# <p>Error message: {error_status}</p>
+# <p>Please contact your system manager for more information.</p>"""
+
+# 	frappe.sendmail(recipients=recipients, subject=subject, message=message)
+
+# Vinod - Custom implementation to send file download link with the email
 def send_email(success, service_name, doctype, email_field, error_status=None):
 	recipients = get_recipients(doctype, email_field)
 	if not recipients:
@@ -21,19 +51,29 @@ def send_email(success, service_name, doctype, email_field, error_status=None):
 		if not frappe.db.get_single_value(doctype, "send_email_for_successful_backup"):
 			return
 
+		# Vinod
+		doc = frappe.get_single("S3 Backup Settings")
+		bucket = doc.bucket
+		os_db_filepath, site_config = get_latest_backup_file()
+		folder = os.path.basename(os_db_filepath)[:15]
+		filename = os.path.basename(os_db_filepath)
+
 		subject = "Backup Upload Successful"
 		message = """
-<h3>Backup Uploaded Successfully!</h3>
-<p>Hi there, this is just to inform you that your backup was successfully uploaded to your {} bucket. So relax!</p>""".format(
-			service_name
-		)
+			<h3>Backup Uploaded Successfully!</h3>
+			<p>Hi there, this is just to inform you that your backup was successfully uploaded to your {0} bucket. So relax!</p>
+			<br/><br/>
+			<a href='https://{1}.s3.ap-south-1.amazonaws.com/{2}/{3}' target='_blank'>Download Link</a>
+			""".format(
+				service_name, bucket, folder, filename
+			)
 	else:
 		subject = "[Warning] Backup Upload Failed"
 		message = f"""
-<h3>Backup Upload Failed!</h3>
-<p>Oops, your automated backup to {service_name} failed.</p>
-<p>Error message: {error_status}</p>
-<p>Please contact your system manager for more information.</p>"""
+			<h3>Backup Upload Failed!</h3>
+			<p>Oops, your automated backup to {service_name} failed.</p>
+			<p>Error message: {error_status}</p>
+			<p>Please contact your system manager for more information.</p>"""
 
 	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
