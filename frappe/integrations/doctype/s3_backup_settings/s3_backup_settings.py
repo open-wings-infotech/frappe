@@ -49,8 +49,8 @@ class S3BackupSettings(Document):
 
 		conn = boto3.client(
 			"s3",
-			aws_access_key_id=self.access_key_id,
-			aws_secret_access_key=self.get_password("secret_access_key"),
+			# aws_access_key_id=self.access_key_id,
+			# aws_secret_access_key=self.get_password("secret_access_key"),
 			endpoint_url=self.endpoint_url,
 		)
 
@@ -136,8 +136,8 @@ def backup_to_s3():
 
 	conn = boto3.client(
 		"s3",
-		aws_access_key_id=doc.access_key_id,
-		aws_secret_access_key=doc.get_password("secret_access_key"),
+		# aws_access_key_id=doc.access_key_id,
+		# aws_secret_access_key=doc.get_password("secret_access_key"),
 		endpoint_url=doc.endpoint_url or "https://s3.amazonaws.com",
 	)
 
