@@ -1468,28 +1468,29 @@ class Document(BaseDocument):
 		# Vinod - Custom implementation for rounding floats with special handling for Sales Invoice
 		# Vinod - Uses currency-specific precision for currency fields in Sales Invoice
 		if self.doctype == 'Sales Invoice':
-		for fieldname in fieldnames:
-			df = frappe.get_meta(doc.doctype).get_field(fieldname)
-			if df.fieldtype == "Currency":
-				number_format = frappe.db.get_value("Currency", self.currency, "number_format")
-				decimal_str, comma_str, precision = get_number_format_info(number_format)
-				doc.set(
-					fieldname,
-					flt(
-						doc.get(fieldname),
-						precision,
-						rounding_method=rounding_method,
-					),
-				)
-			else:
-				doc.set(
-					fieldname,
-					flt(
-						doc.get(fieldname),
-						self.precision(fieldname, doc.get("parentfield")),
-						rounding_method=rounding_method,
-					),
-				)
+			for fieldname in fieldnames:
+				df = frappe.get_meta(doc.doctype).get_field(fieldname)
+				if df.fieldtype == "Currency":
+					from frappe.utils import get_number_format_info
+					number_format = frappe.db.get_value("Currency", self.currency, "number_format")
+					decimal_str, comma_str, precision = get_number_format_info(number_format)
+					doc.set(
+						fieldname,
+						flt(
+							doc.get(fieldname),
+							precision,
+							rounding_method=rounding_method,
+						),
+					)
+				else:
+					doc.set(
+						fieldname,
+						flt(
+							doc.get(fieldname),
+							self.precision(fieldname, doc.get("parentfield")),
+							rounding_method=rounding_method,
+						),
+					)
 		else:
 			for fieldname in fieldnames:
 				doc.set(
