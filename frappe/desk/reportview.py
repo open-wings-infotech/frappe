@@ -521,7 +521,7 @@ def get_field_info(fields, doctype):
 			if parenttype != doctype:
 				# If the column is from a child table, append the child doctype.
 				# For example, "Item Code (Sales Invoice Item)".
-				label += f" ({ _(parenttype) })"
+				label += f" ({_(parenttype)})"
 
 		field_info.append(
 			{"name": name, "label": label, "fieldtype": fieldtype, "translatable": translatable}
@@ -706,7 +706,7 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 			tagcount = frappe.get_list(
 				doctype,
 				fields=[tag["name"], "count(*)"],
-				filters=[*filters, "ifnull(`%s`,'')!=''" % tag["name"]],
+				filters=[*filters, "ifnull(`{}`,'')!=''".format(tag["name"])],
 				group_by=tag["name"],
 				as_list=True,
 			)
