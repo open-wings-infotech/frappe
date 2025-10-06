@@ -186,7 +186,7 @@ def _make_logs_v1():
 	if frappe.local.message_log:
 		response["_server_messages"] = json.dumps([json.dumps(d) for d in frappe.local.message_log])
 
-	if frappe.debug_log:
+	if frappe.debug_log and is_traceback_allowed():
 		response["_debug_messages"] = json.dumps(frappe.local.debug_log)
 
 	if frappe.flags.error_message:
@@ -199,7 +199,7 @@ def _make_logs_v2():
 	if frappe.local.message_log:
 		response["messages"] = frappe.local.message_log
 
-	if frappe.debug_log:
+	if frappe.debug_log and is_traceback_allowed():
 		response["debug"] = [{"message": m} for m in frappe.local.debug_log]
 
 
@@ -228,7 +228,7 @@ def json_handler(obj):
 	elif isinstance(obj, Match):
 		return obj.string
 
-	elif type(obj) == type or isinstance(obj, Exception):
+	elif type(obj) is type or isinstance(obj, Exception):
 		return repr(obj)
 
 	elif callable(obj):
