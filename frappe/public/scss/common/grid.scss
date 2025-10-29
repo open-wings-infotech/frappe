@@ -119,6 +119,9 @@
 	}
 }
 
+.grid-static-col:focus-visible {
+	@include grid-focus();
+}
 .grid-static-col,
 .row-index {
 	height: 38px;
